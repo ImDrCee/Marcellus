@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Evidence-led reconstruction of Marcellus CCP's anonymized April 2026 portfolio clues, with estimated weights.">
+  <title>Marcellus CCP (April 2026): best-fit stock mapping and estimated weights</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #182230;
+      --muted: #5a6878;
+      --line: #d8e0e8;
+      --surface: #fff;
+      --canvas: #f3f6f9;
+      --navy: #17324d;
+      --blue: #185abc;
+      --green: #16794b;
+      --amber: #8b5b00;
+      --red: #a23333;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--canvas); line-height: 1.5; }
+    header { background: var(--navy); color: #fff; padding: 28px clamp(18px, 4vw, 48px) 24px; }
+    .header-inner, main { max-width: 1600px; margin: 0 auto; }
+    h1 { margin: 0 0 10px; font-size: clamp(1.5rem, 3vw, 2.25rem); line-height: 1.2; }
+    .subtitle { color: #dce8f4; margin: 0; max-width: 1000px; }
+    .stamp { display: flex; gap: 10px 24px; flex-wrap: wrap; margin-top: 18px; color: #e2ebf4; font-size: .92rem; }
+    main { padding: 24px clamp(12px, 3vw, 32px) 48px; }
+    .notice { background: #fff8e8; border: 1px solid #e8cf8c; border-left: 5px solid #bc8a1b; border-radius: 8px; padding: 14px 16px; margin-bottom: 18px; }
+    .notice strong { color: #614307; }
+    .notice p { margin: 4px 0 0; }
+    .summary { display: grid; grid-template-columns: repeat(4, minmax(120px, 1fr)); gap: 12px; margin: 18px 0; }
+    .metric { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 13px 15px; }
+    .metric-label { color: var(--muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; }
+    .metric-value { font-weight: 700; font-size: 1.25rem; margin-top: 3px; }
+    .metric-value.warning { color: var(--red); }
+    .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 8px 8px 0 0; padding: 12px; }
+    input, select, button { font: inherit; }
+    .search { flex: 1 1 250px; }
+    .search input, .controls select { width: 100%; min-height: 40px; border: 1px solid #aebbc9; border-radius: 6px; background: #fff; padding: 7px 10px; color: var(--ink); }
+    .search input:focus, select:focus, button:focus-visible, .cell-edit:focus { outline: 3px solid #9cc6ff; outline-offset: 1px; }
+    .controls select { width: auto; min-width: 165px; }
+    button { min-height: 40px; border: 1px solid #aebbc9; border-radius: 6px; padding: 7px 12px; background: #fff; color: var(--ink); cursor: pointer; }
+    button:hover { background: #edf4fb; }
+    button.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+    button.primary:hover { background: #104b9c; }
+    .save-state { margin-left: auto; color: var(--muted); font-size: .85rem; }
+    .table-wrap { overflow: auto; max-height: 72vh; background: #fff; border: 1px solid var(--line); border-top: 0; }
+    table { width: 100%; min-width: 1180px; border-collapse: separate; border-spacing: 0; }
+    th, td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); padding: 11px 12px; }
+    th { position: sticky; top: 0; z-index: 2; background: #eaf0f6; color: #26384a; font-size: .82rem; }
+    th button.sort { border: 0; background: transparent; padding: 0; min-height: auto; color: inherit; font-weight: 700; text-align: left; }
+    th button.sort:hover { text-decoration: underline; background: transparent; }
+    tbody tr:nth-child(even) { background: #f8fafc; }
+    tbody tr:hover { background: #eef6ff; }
+    td.number { width: 46px; font-weight: 700; color: var(--navy); }
+    td.company { min-width: 190px; }
+    td.alternate { min-width: 170px; }
+    td.clue { min-width: 235px; }
+    td.evidence { min-width: 410px; }
+    td.weight { min-width: 105px; }
+    td.confidence { min-width: 108px; }
+    .cell-edit { width: 100%; min-width: 120px; border: 1px solid transparent; border-radius: 4px; padding: 4px 5px; background: transparent; color: inherit; }
+    .cell-edit:hover { border-color: #c3cfdb; background: #fff; }
+    .cell-edit.weight-edit { min-width: 68px; max-width: 82px; text-align: right; }
+    .weight-control { display: flex; align-items: center; gap: 4px; }
+    .clue-text { display: block; }
+    .evidence-text { margin: 0; }
+    .sources { margin-top: 6px; display: flex; gap: 5px 12px; flex-wrap: wrap; font-size: .82rem; }
+    a { color: #1558a6; }
+    .confidence-badge { display: inline-block; border-radius: 20px; padding: 2px 8px; font-size: .78rem; font-weight: 700; white-space: nowrap; }
+    .confidence-high { color: #145b3c; background: #dff3e9; }
+    .confidence-medium-high { color: #275a71; background: #e0f0f6; }
+    .confidence-medium { color: #73500a; background: #fff1cc; }
+    .confidence-low { color: #8b3434; background: #fae3e3; }
+    .lower-note { margin-top: 16px; padding: 15px 17px; background: #fff; border: 1px solid var(--line); border-radius: 8px; }
+    .lower-note h2 { font-size: 1.05rem; margin: 0 0 6px; }
+    .lower-note p { margin: 5px 0; color: #435262; }
+    .footer { color: var(--muted); font-size: .85rem; padding: 16px 2px 0; }
+    .empty { padding: 24px; text-align: center; color: var(--muted); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    .evidence-editor { width: 100%; min-height: 112px; margin-top: 8px; padding: 8px; border: 1px solid #aebbc9; border-radius: 5px; font: inherit; color: var(--ink); }
+    @media (max-width: 700px) {
+      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .save-state { margin-left: 0; flex-basis: 100%; }
+      .table-wrap { max-height: 68vh; }
+    }
+    @media print {
+      body { background: #fff; }
+      header { background: #fff; color: #000; padding: 0 0 16px; }
+      .subtitle, .stamp { color: #333; }
+      main { padding: 0; }
+      .controls { display: none; }
+      .table-wrap { overflow: visible; max-height: none; border: 0; }
+      table { min-width: 0; font-size: 8pt; }
+      th { position: static; }
+      td, th { padding: 5px; }
+      .cell-edit { border: 0; padding: 0; }
+      .notice, .metric, .lower-note { break-inside: avoid; }
+      a { color: #000; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>Marcellus CCP (April 2026): best-fit stock mapping and estimated weights</h1>
+      <p class="subtitle">An evidence-led reconstruction of the 19 anonymized portfolio clues. Company matches and individual weights below are estimates—not a disclosed Marcellus holdings list.</p>
+      <div class="stamp">
+        <span><strong>Created:</strong> September 2026</span>
+        <span><strong>Source portfolio period:</strong> April 2026</span>
+        <span><strong>Last reviewed:</strong> September 2026</span>
+      </div>
+    </div>
+  </header>
+  <main>
+    <section class="notice" aria-label="Important caveat">
+      <strong>How to read this table</strong>
+      <p>Exhibit 2 supplies anonymized descriptions and market-cap buckets; Exhibit 3 supplies anonymized financial metrics. Matches are hypotheses based on those clues and public evidence. Weights are estimates constrained to the article’s reported 51% large-cap exposure, while the mid/small split is an explicit modeling assumption. Edit company names and weights in the table, or open “Edit evidence” within a row; changes are saved in this browser on this device.</p>
+    </section>
+    <section class="summary" aria-label="Portfolio summary">
+      <div class="metric"><div class="metric-label">Constituent clues</div><div class="metric-value" id="count">19</div></div>
+      <div class="metric"><div class="metric-label">Estimated weight total</div><div class="metric-value" id="weight-total">100.0%</div></div>
+      <div class="metric"><div class="metric-label">Assumed large / mid / small</div><div class="metric-value" id="bucket-summary">51 / 30 / 19%</div></div>
+      <div class="metric"><div class="metric-label">Visible rows</div><div class="metric-value" id="visible-count">19 / 19</div></div>
+    </section>
+    <section class="controls" aria-label="Table controls">
+      <label class="search"><span class="sr-only">Search table</span><input id="search" type="search" placeholder="Search clue, company, evidence…" autocomplete="off"></label>
+      <select id="confidence-filter" aria-label="Filter by confidence">
+        <option value="">All confidence levels</option>
+        <option value="High">High</option>
+        <option value="Medium-high">Medium-high</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+      <button id="export-csv" class="primary" type="button">Export CSV</button>
+      <button id="reset" type="button" title="Restore the original September 2026 estimates">Reset to original</button>
+      <span id="save-state" class="save-state" role="status" aria-live="polite">Original snapshot</span>
+    </section>
+    <div class="table-wrap">
+      <table id="portfolio-table">
+        <thead>
+          <tr>
+            <th scope="col"><button class="sort" data-sort="number" type="button">#</button></th>
+            <th scope="col"><button class="sort" data-sort="best" type="button">Best-fit company</button></th>
+            <th scope="col">Alternate possibility company</th>
+            <th scope="col">Exhibit clue</th>
+            <th scope="col">What the public evidence supports</th>
+            <th scope="col"><button class="sort" data-sort="weight" type="button">Guessed weight</button></th>
+            <th scope="col"><button class="sort" data-sort="confidence" type="button">Confidence</button></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div id="empty" class="empty" hidden>No rows match your search.</div>
+    </div>
+    <section class="lower-note">
+      <h2>Weight-estimate method and unresolved calls</h2>
+      <p>The weights add to 100%: 51% large-cap (reported in contemporaneous coverage), 30% mid-cap and 19% small-cap (assumed splits for this reconstruction). The top five guessed weights total 41.5%, consistent with Marcellus’s statement that the actual top five exceed 40%; neither the identities nor these individual weights are confirmed.</p>
+      <p><strong>#11:</strong> Dr. Lal PathLabs is the revised best fit. Its Q3FY26 pre-exceptional EBITDA growth of about 16.3% and reported RoCE around 31% line up with Exhibit 3’s 16% and 31%; EPS growth is not a clean match. The “small” classification and exact April 2026 identity remain unverified.</p>
+      <p><strong>#18:</strong> Vijaya Diagnostic Centre is the strongest numerical fit: reported Q3FY26 EBITDA growth of about 28.2% and EPS growth of about 22.5% closely match Exhibit 3’s 28% and 23%. Marcellus’s public Vijaya discussion relates to Little Champs, so it does not confirm CCP #18.</p>
+      <p><strong>#12:</strong> Kotak is the best-fit inference from the bank clue, but the row’s description is generic and does not establish the identity. “Best fit” throughout means best among the public clues found—not confirmed membership.</p>
+    </section>
+    <div class="footer">
+      <strong>Primary references:</strong>
+      <a href="https://marcellus.in/newsletter/consistent-compounders/diversification-in-a-concentrated-portfolio-of-compounders/" target="_blank" rel="noopener noreferrer">Marcellus April 2026 newsletter</a> ·
+      <a href="https://www.moneycontrol.com/news/business/markets/marcellus-rejigs-portfolio-exits-from-it-makes-healthcare-bet-amid-continued-consumption-slowdown-13895169.html" target="_blank" rel="noopener noreferrer">Moneycontrol portfolio coverage</a> ·
+      <a href="https://www.moneycontrol.com/news/business/markets/marcellus-ccp-astral-and-divis-join-eicher-as-top-contributors-as-portfolio-tilts-further-toward-healthcare-and-exports-13975792.html" target="_blank" rel="noopener noreferrer">CCP performance and contributor coverage</a>.
+      <br>Editable values persist via browser local storage. Export CSV before clearing browser data or moving to another device.
+    </div>
+  </main>
+  <script>
+    const originalRows = [
+      { number: 1, best: "Tube Investments of India Ltd.", alternate: "CG Power & Industrial Solutions Ltd.", cap: "Mid", clue: "Power T&D; manufacturing (auto ancillaries and engineering); commercial EV", evidence: "The combination of businesses points to the Tube Investments group: engineering and auto components, CG Power’s power business, and TI Clean Mobility’s commercial EVs. Exhibit 3 gives 19% EBITDA / 15% EPS growth / 24% RoCE. TII’s Q3 release shows growth across consolidated businesses, but I have not verified an exact like-for-like match for both growth figures.", sources: [["TII Q3 FY26 release", "https://tiindia.com/wp-content/uploads/2026/02/Press-Release-Q3-2025-26.pdf"]], weight: 4.5, confidence: "Medium-high"},
+      { number: 2, best: "Trent Ltd.", alternate: "V-Mart Retail Ltd.", cap: "Large", clue: "Unorganised-to-organised fashion retail in Tier 2/3 cities", evidence: "Trent is the clearest fit for the fashion-retail clue. Exhibit 3 shows 28% EBITDA / 8% EPS / 39% RoCE / 94% reinvestment. Trent’s Q3FY26 EBITDA growth was reported closer to 20–23% on some bases, so the exact EPS match is less clear.", sources: [["Trent financial results", "https://trentlimited.com/pages/financial-results"]], weight: 9, confidence: "High"},
+      { number: 3, best: "Divi’s Laboratories Ltd.", alternate: "Laurus Labs Ltd.", cap: "Large", clue: "Pharma CDMO exports; GLP-1 drugs; contrast media", evidence: "The combination of CDMO exports and contrast media particularly points to Divi’s. Q3FY26 EBITDA grew about 20%, matching Exhibit 3’s 20%; reported profit was affected by an exceptional item, so pre-exceptional EPS is the relevant comparison. This supports, but does not prove, the match.", sources: [["Q3 results coverage", "https://www.cnbctv18.com/market/earnings/divis-labs-share-q3-misses-street-estimates-profit-strong-operating-performance-ws-l-19847590.htm"]], weight: 9, confidence: "High"},
+      { number: 4, best: "Narayana Health (Narayana Hrudayalaya Ltd.)", alternate: "Max Healthcare Institute Ltd.", cap: "Mid", clue: "Hospitals/clinics and insurance-network expansion in Cayman, UK and India", evidence: "The Cayman and UK references are unusually specific to Narayana’s international hospital footprint. Its Q3FY26 adjusted EBITDA growth of about 43% and adjusted PAT growth of about 32% are close to Exhibit 3’s 44% EBITDA / 32% EPS.", sources: [["Q3FY26 investor presentation", "https://www.investywise.com/narayana-health-investor-presentation-for-q3-fy26/"]], weight: 7, confidence: "High"},
+      { number: 5, best: "Eicher Motors Ltd.", alternate: "TVS Motor Company Ltd.", cap: "Large", clue: "Auto OEM; premiumisation of two-wheelers in India; commercial vehicles; exports", evidence: "Royal Enfield makes Eicher the strongest premium-motorcycle fit. Q3FY26 EBITDA growth was reported at about 30%, matching Exhibit 3; reported EPS growth was around 21%, below the exhibit’s 26% pre-exceptional figure. Marcellus also named Eicher among recent top contributors.", sources: [["Q3 results coverage", "https://www.zeebiz.com/companies/news-eicher-motors-q3-fy26-results-royal-enfield-maker-s-net-profit-up-21-to-rs-1421-crore-revenue-rises-23-390231"], ["Marcellus portfolio update", "https://www.moneycontrol.com/news/business/markets/marcellus-ccp-astral-and-divis-join-eicher-as-top-contributors-as-portfolio-tilts-further-toward-healthcare-and-exports-13975792.html"]], weight: 9, confidence: "High"},
+      { number: 6, best: "Asian Paints Ltd.", alternate: "Berger Paints India Ltd.", cap: "Large", clue: "Home-building materials; backward integration in manufacturing", evidence: "Asian Paints fits the large home-improvement/materials description. Exhibit 3 shows 9% EBITDA / 9% EPS / 27% RoCE / 47% reinvestment; Q3FY26 EBITDA growth was about 9%, a good match, though reported profit was affected by exceptional items. The clue alone does not distinguish it from Berger.", sources: [["Q3 results coverage", "https://www.business-standard.com/companies/quarterly-results/asian-paints-q3-fy26-results-profit-revenue-earnings-share-price-126012700728_1.html"]], weight: 4, confidence: "Medium"},
+      { number: 7, best: "Info Edge (India) Ltd.", alternate: "Just Dial Ltd.", cap: "Large", clue: "Internet classifieds; AI-led product development; venture capital", evidence: "The classifieds plus venture-investment combination is highly distinctive for Info Edge. Q3FY26 EBITDA grew about 13%, close to Exhibit 3’s 12%; EPS growth was lower than the exhibit’s 14%. Marcellus also named Info Edge among recent portfolio detractors.", sources: [["Q3 results coverage", "https://www.cnbctv18.com/market/earnings/info-edge-mixed-q3-results-profit-slips-14-pc-revenue-margins-improve-ws-l-19849634.htm"], ["Marcellus portfolio update", "https://www.moneycontrol.com/news/business/markets/marcellus-ccp-astral-and-divis-join-eicher-as-top-contributors-as-portfolio-tilts-further-toward-healthcare-and-exports-13975792.html"]], weight: 3, confidence: "High"},
+      { number: 8, best: "Astral Ltd.", alternate: "Supreme Industries Ltd.", cap: "Mid", clue: "Home-building materials; backward integration in manufacturing", evidence: "Astral’s pipes and building-products businesses fit the clue. Exhibit 3 has 8% EBITDA / 5% EPS / 21% RoCE / 87% reinvestment; Q3FY26 EBITDA growth was reported at about 8%, while EPS growth was weaker. Marcellus later mentioned Astral among its contributors.", sources: [["Q3 results coverage", "https://www.cnbctv18.com/market/earnings/astral-ltd-share-price-q3fy26-results-net-profit-revenue-ebitda-margins-ws-l-19843355.htm"], ["Marcellus portfolio update", "https://www.moneycontrol.com/news/business/markets/marcellus-ccp-astral-and-divis-join-eicher-as-top-contributors-as-portfolio-tilts-further-toward-healthcare-and-exports-13975792.html"]], weight: 4.5, confidence: "Medium-high"},
+      { number: 9, best: "CMS Info Systems Ltd.", alternate: "AGS Transact Technologies Ltd.", cap: "Small", clue: "Retail/ATM cash logistics; tech-based solutions to banks and retailers", evidence: "The ATM cash-management and retail-logistics wording points strongly to CMS. Exhibit 3 shows a sharp decline (−19% EBITDA / −30% EPS), consistent with a weak period, but I have not verified those exact figures against CMS results on the same basis. Marcellus later named CMS among its detractors.", sources: [["Marcellus portfolio update", "https://www.moneycontrol.com/news/business/markets/marcellus-ccp-astral-and-divis-join-eicher-as-top-contributors-as-portfolio-tilts-further-toward-healthcare-and-exports-13975792.html"]], weight: 4.5, confidence: "High"},
+      { number: 10, best: "Tata Consumer Products Ltd.", alternate: "Nestlé India Ltd.", cap: "Large", clue: "Packaged-food penetration and premiumisation", evidence: "Tata Consumer’s foods business and premiumisation strategy fit the clue; its relatively low returns on capital also fit Exhibit 3’s 9% RoCE better than Nestlé’s typically higher returns. Q3FY26 EBITDA/PAT grew about 26%/38%, reasonably close to Exhibit 3’s 28%/43%, but not exact.", sources: [["Q3 results coverage", "https://www.business-standard.com/markets/capital-market-news/tata-consumer-rises-after-q3-pat-climbs-38-yoy-to-rs-385-cr-126012700746_1.html"]], weight: 3, confidence: "Medium"},
+      { number: 11, best: "Dr. Lal PathLabs Ltd.", alternate: "Krsnaa Diagnostics Ltd.", cap: "Small", clue: "Diagnostics; geographic spread; preventive/wellness; entry into radiology", evidence: "Dr. Lal’s nationwide diagnostics network, preventive testing and planned radiology expansion fit the business clue. Its Q3FY26 EBITDA before exceptional items grew about 16.3%, matching Exhibit 3’s 16%, and its FY25 RoCE has been reported around 31%, matching the exhibit. EPS is not a clean match: reported Q3 EPS declined, while 9M EPS growth was about 12%. Marcellus publicly discussed increasing its Dr. Lal position in 2023, but that does not confirm CCP #11; the row’s 'Small' classification also remains an open check.", sources: [["Marcellus interview on diagnostics holdings", "https://www.cnbctv18.com/market/stocks/why-saurabh-mukherjea-thinks-diagnostic-stocks-vijaya-diagnostics-metropolis-healthcare-are-little-champs-17665251.htm"], ["Q3 results coverage", "https://www.investywise.com/dr-lal-pathlabs-reports-q3-fy26-results/"], ["Radiology expansion report", "https://www.sahi.com/news/dr-lal-pathlabs-targets-140-150-crore-capex-to-open-12-15-new-labs-4013-PE1_COR"]], weight: 4.5, confidence: "Medium-high"},
+      { number: 12, best: "Kotak Mahindra Bank Ltd.", alternate: "HDFC Bank Ltd.", cap: "Large", clue: "Bank; market-share gains from PSU banks", evidence: "Kotak is the best-fit inference among the banks discussed, and Marcellus has historically written about strong private lenders gaining share. But the clue is generic, Exhibit 3’s 8% EBITDA / 15% EPS / 14% RoCE is not a clean match to Kotak Q3FY26, and conventional EBITDA comparisons are less useful for banks. Not confirmed.", sources: [["Marcellus lender commentary", "https://marcellus.in/newsletter/consistent-compounders/the-lenders-in-our-portfolio-will-gain-from-the-ongoing-crisis/"]], weight: 7.5, confidence: "Medium"},
+      { number: 13, best: "Escorts Kubota Ltd.", alternate: "Mahindra & Mahindra Ltd.", cap: "Mid", clue: "Auto OEM; rural and India-oriented; manufacturing exports", evidence: "Escorts Kubota’s tractor and agricultural-equipment business is a strong fit for the rural-market clue. Q3FY26 EBITDA grew about 31%, matching Exhibit 3’s 31%; adjusted profit growth was strong, though not an exact match to its 43% EPS figure.", sources: [["Company Q3 FY26 release", "https://static.escortskubota.com/new/pdf/2026/february/Q3FY26-PR.pdf"]], weight: 4.5, confidence: "High"},
+      { number: 14, best: "Metro Brands Ltd.", alternate: "Bata India Ltd.", cap: "Mid", clue: "Footwear retail; global brands in India", evidence: "Metro Brands is the strongest fit for the branded-footwear clue. Exhibit 3 shows 19% EBITDA / 9% EPS / 33% RoCE; its reported Q3FY26 EBITDA growth was in the mid-to-high teens, but profit growth was stronger than the exhibit’s EPS figure. Business clue is stronger than the earnings match.", sources: [["Q3 results coverage", "https://www.cnbctv18.com/market/earnings/metro-brands-share-price-q3-results-net-profit-surges-revenue-ebitda-margins-festive-wedding-season-sales-gst-cut-foot-locker-19834169.htm"]], weight: 5, confidence: "High"},
+      { number: 15, best: "ICICI Lombard General Insurance Co. Ltd.", alternate: "Go Digit General Insurance Ltd.", cap: "Mid", clue: "Motor and health insurance; investment discipline", evidence: "ICICI Lombard fits the motor/health mix and is consistent with the user’s earlier list of Marcellus-linked names. Exhibit 3 shows −9% EBITDA / −4% EPS; ICICI Lombard’s Q3FY26 operating-profit and EPS measures also declined, though by different amounts. Direction fits better than exact values.", sources: [["Q3 results coverage", "https://www.angelone.in/news/stocks/icici-lombard-q3-fy26-earnings-results-net-profit-falls-9-percent-to-rs-658-crore-despite-strong-premium-growth"]], weight: 4.5, confidence: "Medium"},
+      { number: 16, best: "CarTrade Tech Ltd.", alternate: "CarDekho (unlisted; weaker comparison)", cap: "Small", clue: "New/used-car classifieds; AI-led product development", evidence: "The used-car classifieds clue is highly specific to CarTrade among listed companies. Q3FY26 EBITDA growth of 56% and adjusted EPS growth of about 49% closely match Exhibit 3’s 56%/49%.", sources: [["Q3 results coverage", "https://www.multibagg.ai/market-pulse/articles/cartrade-tech-q3-fy26-growth-90700"]], weight: 5, confidence: "High"},
+      { number: 17, best: "Cholamandalam Investment and Finance Co. Ltd.", alternate: "Shriram Finance Ltd.", cap: "Large", clue: "NBFC; vehicle financing and SME loans", evidence: "Chola’s vehicle-finance and SME-lending businesses fit the clue closely. Exhibit 3 gives 24% EBITDA / 22% EPS / 20% RoCE; Q3FY26 EPS growth was reported around 18%, with operating-profit growth around 21%, broadly close but not exact.", sources: [["Q3 results coverage", "https://www.cnbctv18.com/market/earnings/cholamandalam-investment-delivers-a-strong-q3-with-profits-up-19-and-steady-loan-growth-ws-l-19837416.htm"]], weight: 3.5, confidence: "High"},
+      { number: 18, best: "Vijaya Diagnostic Centre Ltd.", alternate: "Metropolis Healthcare Ltd.", cap: "Small", clue: "Diagnostics; geographic spread; preventive/wellness", evidence: "Strongest numerical match: Exhibit 3 shows 28% EBITDA / 23% EPS / 30% RoCE. Vijaya reported Q3FY26 EBITDA growth of about 28.2% and EPS growth of about 22.5%; the 30% RoCE is plausible, but an exact company-reported figure has not been verified. Marcellus has publicly discussed Vijaya in its Little Champs context, not as confirmation of CCP #18.", sources: [["Q3 results coverage", "https://www.kotakneo.com/financial-results/vijaya-diagnostic-centre-share-price-q3fy2025-26-results/"], ["Marcellus Vijaya spotlight", "https://marcellus.in/newsletter/little-champs/little-champs-spotlighting-vijaya-diagnostic/"]], weight: 5, confidence: "High"},
+      { number: 19, best: "Pidilite Industries Ltd.", alternate: "Berger Paints India Ltd.", cap: "Large", clue: "Home-building materials", evidence: "Pidilite’s adhesives and waterproofing products are a plausible home-building-materials fit. Exhibit 3 shows 12% EBITDA / 13% EPS / 31% RoCE; Pidilite’s Q3FY26 EBITDA and PAT growth were both around 12%, a close match. Another large home-improvement company remains possible.", sources: [["Pidilite Q3 FY26 release", "https://www.pidilite.com/content/dam/pidilitecorporatewebsite/financial/quarterly-reports/fy-2025-26/q3/pressreleaseseintmationfinalupload.pdf"]], weight: 3, confidence: "Medium-high"}
+    ];
+
+    const storageKey = "marcellus-ccp-reconstruction-2026-09";
+    let rows;
+    let sortKey = "number";
+    let sortDirection = 1;
+    let saveTimer;
+
+    function loadRows() {
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length === originalRows.length) return parsed;
+        }
+      } catch (error) {
+        console.warn("Could not load the saved table snapshot.", error);
+      }
+      return structuredClone(originalRows);
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, character => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[character]);
+    }
+
+    function confidenceClass(value) {
+      return "confidence-" + value.toLowerCase().replaceAll(" ", "-");
+    }
+
+    function render() {
+      const query = document.getElementById("search").value.trim().toLowerCase();
+      const confidence = document.getElementById("confidence-filter").value;
+      const filtered = rows.filter(row => {
+        const haystack = [row.number, row.best, row.alternate, row.clue, row.evidence, row.cap].join(" ").toLowerCase();
+        return (!query || haystack.includes(query)) && (!confidence || row.confidence === confidence);
+      });
+      filtered.sort((a, b) => {
+        let result;
+        if (sortKey === "weight") result = Number(a.weight) - Number(b.weight);
+        else if (sortKey === "confidence") {
+          const order = { Low: 0, Medium: 1, "Medium-high": 2, High: 3 };
+          result = order[a.confidence] - order[b.confidence];
+        } else if (sortKey === "best") result = a.best.localeCompare(b.best);
+        else result = a.number - b.number;
+        return result * sortDirection;
+      });
+      document.getElementById("rows").innerHTML = filtered.map(row => `
+        <tr data-number="${row.number}">
+          <td class="number">${row.number}</td>
+          <td class="company"><input class="cell-edit" aria-label="Best-fit company for stock ${row.number}" data-field="best" value="${escapeHtml(row.best)}"></td>
+          <td class="alternate"><input class="cell-edit" aria-label="Alternate company for stock ${row.number}" data-field="alternate" value="${escapeHtml(row.alternate)}"></td>
+          <td class="clue"><span class="clue-text">${escapeHtml(row.clue)}</span><small>Market-cap bucket: ${escapeHtml(row.cap)}</small></td>
+          <td class="evidence"><p class="evidence-text">${escapeHtml(row.evidence)}</p><div class="sources">${row.sources.map(source => `<a href="${escapeHtml(source[1])}" target="_blank" rel="noopener noreferrer">${escapeHtml(source[0])}</a>`).join("")}</div><details><summary>Edit evidence</summary><textarea class="evidence-editor" aria-label="Evidence notes for stock ${row.number}" data-field="evidence">${escapeHtml(row.evidence)}</textarea></details></td>
+          <td class="weight"><div class="weight-control"><input class="cell-edit weight-edit" type="number" min="0" max="100" step="0.1" aria-label="Guessed weight for stock ${row.number}" data-field="weight" value="${Number(row.weight).toFixed(1)}"><span>%</span></div></td>
+          <td class="confidence"><span class="confidence-badge ${confidenceClass(row.confidence)}">${escapeHtml(row.confidence)}</span></td>
+        </tr>`).join("");
+      document.getElementById("empty").hidden = filtered.length !== 0;
+      document.getElementById("visible-count").textContent = `${filtered.length} / ${rows.length}`;
+      document.getElementById("count").textContent = rows.length;
+      updateTotals();
+      document.querySelectorAll(".cell-edit, .evidence-editor").forEach(input => {
+        input.addEventListener("change", onEdit);
+      });
+    }
+
+    function updateTotals() {
+      const total = rows.reduce((sum, row) => sum + (Number(row.weight) || 0), 0);
+      const buckets = rows.reduce((sum, row) => {
+        sum[row.cap] += Number(row.weight) || 0;
+        return sum;
+      }, { Large: 0, Mid: 0, Small: 0 });
+      const totalElement = document.getElementById("weight-total");
+      totalElement.textContent = `${total.toFixed(1)}%`;
+      totalElement.classList.toggle("warning", Math.abs(total - 100) > 0.05);
+      document.getElementById("bucket-summary").textContent =
+        `${buckets.Large.toFixed(1)} / ${buckets.Mid.toFixed(1)} / ${buckets.Small.toFixed(1)}%`;
+    }
+
+    function persist() {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(rows));
+        document.getElementById("save-state").textContent = "Saved in this browser";
+      } catch (error) {
+        document.getElementById("save-state").textContent = "Could not save locally; export a CSV";
+        console.error("Could not save the updated portfolio table.", error);
+      }
+    }
+
+    function onEdit(event) {
+      const input = event.currentTarget;
+      const tr = input.closest("tr");
+      const row = rows.find(item => item.number === Number(tr.dataset.number));
+      if (!row) return;
+      if (input.dataset.field === "weight") {
+        row.weight = Math.min(100, Math.max(0, Number(input.value) || 0));
+        input.value = Number(row.weight).toFixed(1);
+      } else {
+        row[input.dataset.field] = input.value.trim();
+        if (input.dataset.field === "evidence") {
+          tr.querySelector(".evidence-text").textContent = row.evidence;
+        }
+      }
+      persist();
+      updateTotals();
+    }
+
+    function exportCsv() {
+      const columns = ["number", "best", "alternate", "cap", "clue", "evidence", "weight", "confidence"];
+      const quote = value => `"${String(value).replaceAll('"', '""')}"`;
+      const csv = [columns.join(","), ...rows.map(row => columns.map(column => quote(row[column])).join(","))].join("\r\n");
+      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "marcellus-ccp-reconstruction-2026-09.csv";
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    rows = loadRows();
+    render();
+    document.getElementById("search").addEventListener("input", render);
+    document.getElementById("confidence-filter").addEventListener("change", render);
+    document.getElementById("export-csv").addEventListener("click", exportCsv);
+    document.getElementById("reset").addEventListener("click", () => {
+      rows = structuredClone(originalRows);
+      try { localStorage.removeItem(storageKey); } catch (error) {
+        console.warn("Could not clear the saved table snapshot.", error);
+      }
+      document.getElementById("save-state").textContent = "Restored original snapshot";
+      render();
+    });
+    document.querySelectorAll("button.sort").forEach(button => {
+      button.addEventListener("click", () => {
+        if (sortKey === button.dataset.sort) sortDirection *= -1;
+        else { sortKey = button.dataset.sort; sortDirection = 1; }
+        render();
+      });
+    });
+  </script>
+</body>
+</html>
