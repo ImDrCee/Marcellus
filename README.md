@@ -4,7 +4,9 @@ An interactive reconstruction of the anonymized stock clues in Marcellus's April
 
 ## Open the table
 
-Open [`marcellus_ccp_reconstruction.html`](./marcellus_ccp_reconstruction.html) in a modern browser. The page works without a server and provides:
+<a href="https://imdrcee.github.io/Marcellus/" target="_blank" rel="noopener noreferrer">Open the interactive CCP table in a new tab</a>.
+
+The [HTML source file](./marcellus_ccp_reconstruction.html) is also available in this repository; GitHub's source-code view shows the markup rather than rendering it. To run it locally, download the HTML file and open it in a modern browser. The page works without a server and provides:
 
 - All 19 anonymized stock clues, proposed best-fit and alternate companies, evidence notes, confidence labels, and estimated weights.
 - Search, confidence filtering, and sortable columns.

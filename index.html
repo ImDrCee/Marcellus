@@ -48,22 +48,25 @@
     button.primary:hover { background: #104b9c; }
     .save-state { margin-left: auto; color: var(--muted); font-size: .85rem; }
     .table-wrap { overflow: auto; max-height: 72vh; background: #fff; border: 1px solid var(--line); border-top: 0; }
-    table { width: 100%; min-width: 1180px; border-collapse: separate; border-spacing: 0; }
+    table { width: 100%; min-width: 1180px; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
     th, td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); padding: 11px 12px; }
     th { position: sticky; top: 0; z-index: 2; background: #eaf0f6; color: #26384a; font-size: .82rem; }
     th button.sort { border: 0; background: transparent; padding: 0; min-height: auto; color: inherit; font-weight: 700; text-align: left; }
     th button.sort:hover { text-decoration: underline; background: transparent; }
     tbody tr:nth-child(even) { background: #f8fafc; }
     tbody tr:hover { background: #eef6ff; }
-    td.number { width: 46px; font-weight: 700; color: var(--navy); }
-    td.company { min-width: 190px; }
-    td.alternate { min-width: 170px; }
-    td.clue { min-width: 235px; }
-    td.evidence { min-width: 410px; }
-    td.weight { min-width: 105px; }
-    td.confidence { min-width: 108px; }
+    th:nth-child(1), td.number { width: 4%; }
+    th:nth-child(2), td.company { width: 15%; }
+    th:nth-child(3), td.alternate { width: 15%; }
+    th:nth-child(4), td.clue { width: 18%; }
+    th:nth-child(5), td.evidence { width: 35%; }
+    th:nth-child(6), td.weight { width: 6%; }
+    th:nth-child(7), td.confidence { width: 7%; }
+    td.number { font-weight: 700; color: var(--navy); }
+    td.company, td.alternate, td.clue, td.evidence, td.weight, td.confidence { overflow-wrap: anywhere; }
     .cell-edit { width: 100%; min-width: 120px; border: 1px solid transparent; border-radius: 4px; padding: 4px 5px; background: transparent; color: inherit; }
     .cell-edit:hover { border-color: #c3cfdb; background: #fff; }
+    textarea.cell-edit.company-edit { min-width: 0; min-height: 48px; resize: vertical; white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.35; }
     .cell-edit.weight-edit { min-width: 68px; max-width: 82px; text-align: right; }
     .weight-control { display: flex; align-items: center; gap: 4px; }
     .clue-text { display: block; }
@@ -243,8 +246,8 @@
       document.getElementById("rows").innerHTML = filtered.map(row => `
         <tr data-number="${row.number}">
           <td class="number">${row.number}</td>
-          <td class="company"><input class="cell-edit" aria-label="Best-fit company for stock ${row.number}" data-field="best" value="${escapeHtml(row.best)}"></td>
-          <td class="alternate"><input class="cell-edit" aria-label="Alternate company for stock ${row.number}" data-field="alternate" value="${escapeHtml(row.alternate)}"></td>
+          <td class="company"><textarea class="cell-edit company-edit" rows="2" aria-label="Best-fit company for stock ${row.number}" data-field="best">${escapeHtml(row.best)}</textarea></td>
+          <td class="alternate"><textarea class="cell-edit company-edit" rows="2" aria-label="Alternate company for stock ${row.number}" data-field="alternate">${escapeHtml(row.alternate)}</textarea></td>
           <td class="clue"><span class="clue-text">${escapeHtml(row.clue)}</span><small>Market-cap bucket: ${escapeHtml(row.cap)}</small></td>
           <td class="evidence"><p class="evidence-text">${escapeHtml(row.evidence)}</p><div class="sources">${row.sources.map(source => `<a href="${escapeHtml(source[1])}" target="_blank" rel="noopener noreferrer">${escapeHtml(source[0])}</a>`).join("")}</div><details><summary>Edit evidence</summary><textarea class="evidence-editor" aria-label="Evidence notes for stock ${row.number}" data-field="evidence">${escapeHtml(row.evidence)}</textarea></details></td>
           <td class="weight"><div class="weight-control"><input class="cell-edit weight-edit" type="number" min="0" max="100" step="0.1" aria-label="Guessed weight for stock ${row.number}" data-field="weight" value="${Number(row.weight).toFixed(1)}"><span>%</span></div></td>
