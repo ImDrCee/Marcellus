@@ -4,7 +4,7 @@ An interactive reconstruction of the anonymized stock clues in Marcellus's April
 
 ## Open the table
 
-<a href="https://imdrcee.github.io/Marcellus/" target="_blank" rel="noopener noreferrer">Open the interactive CCP table in a new tab</a>.
+[Open the interactive CCP table](https://imdrcee.github.io/Marcellus/) (Ctrl/Cmd-click or middle-click to open in a new tab).
 
 The [HTML source file](./marcellus_ccp_reconstruction.html) is also available in this repository; GitHub's source-code view shows the markup rather than rendering it. To run it locally, download the HTML file and open it in a modern browser. The page works without a server and provides:
 
